@@ -10,6 +10,7 @@ type Config struct {
 	Addr           string
 	DatabaseURI    string
 	AccrualAddress string
+	Secret         string
 }
 
 func NewConfig() (*Config, error) {
@@ -35,6 +36,13 @@ func NewConfig() (*Config, error) {
 
 	if cfg.DatabaseURI == "" {
 		return nil, fmt.Errorf("empty Database URI")
+	}
+
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		cfg.Secret = "secret"
+	} else {
+		cfg.Secret = secret
 	}
 
 	return cfg, nil
