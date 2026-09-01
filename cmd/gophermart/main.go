@@ -1,12 +1,26 @@
 package main
 
 import (
+	"context"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/Kosvu/gophermart/internal/core/config"
 	"github.com/Kosvu/gophermart/internal/core/migrations"
+	core_repository "github.com/Kosvu/gophermart/internal/core/repository"
+	auth_repository "github.com/Kosvu/gophermart/internal/features/auth/repository"
+	auth_service "github.com/Kosvu/gophermart/internal/features/auth/service"
+	"github.com/Kosvu/gophermart/internal/features/auth/token"
+	auth_transport_http "github.com/Kosvu/gophermart/internal/features/auth/transport/http"
+	"github.com/go-chi/chi"
 )
 
 func main() {
 	cfg, err := config.NewConfig()
+	ctx := context.Background()
 
 	if err != nil {
 		panic(err)
@@ -15,4 +29,33 @@ func main() {
 	if err := migrations.StartMigration(cfg.DatabaseURI); err != nil {
 		panic(err)
 	}
+
+	pool, err := core_repository.NewPool(ctx, cfg.DatabaseURI)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	repositoryAuth := auth_repository.NewAuth(pool)
+	token := token.NewToken(cfg.Secret, token.DefaultTTL)
+	serviceAuth := auth_service.NewAuthService(repositoryAuth, *token)
+	transportHTTPAuth := auth_transport_http.NewAuthHTTPHandler(serviceAuth)
+
+	r := chi.NewRouter()
+
+	r.Post("/api/user/register", transportHTTPAuth.Register)
+	r.Post("/api/user/login", transportHTTPAuth.Login)
+
+	go func() {
+		if err := http.ListenAndServe(cfg.Addr, r); err != nil {
+			panic(err)
+		}
+	}()
+
+	sigCh := make(chan os.Signal, 1)
+
+	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
+	<-sigCh
+	pool.Close()
+
 }

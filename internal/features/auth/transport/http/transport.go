@@ -12,6 +12,12 @@ type AuthService interface {
 		login string,
 		password string,
 	) (string, error)
+
+	Login(
+		ctx context.Context,
+		login string,
+		password string,
+	) (string, error)
 }
 
 func NewAuthHTTPHandler(authService AuthService) *AuthHTTPHandler {

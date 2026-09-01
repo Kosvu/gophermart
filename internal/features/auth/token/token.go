@@ -7,6 +7,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const DefaultTTL = 24 * time.Hour
+
 type Token struct {
 	secret string
 	ttl    time.Duration

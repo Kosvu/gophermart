@@ -17,6 +17,11 @@ type AuthRepository interface {
 		login string,
 		password []byte,
 	) error
+
+	Login(
+		ctx context.Context,
+		login string,
+	) ([]byte, error)
 }
 
 func NewAuthService(authRepository AuthRepository, token token.Token) *AuthService {

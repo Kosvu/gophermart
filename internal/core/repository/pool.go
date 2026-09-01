@@ -1,4 +1,4 @@
-package repository
+package core_repository
 
 import (
 	"context"
