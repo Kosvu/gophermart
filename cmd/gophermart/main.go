@@ -11,6 +11,7 @@ import (
 	"github.com/Kosvu/gophermart/internal/core/config"
 	"github.com/Kosvu/gophermart/internal/core/migrations"
 	core_repository "github.com/Kosvu/gophermart/internal/core/repository"
+	auth_middleware "github.com/Kosvu/gophermart/internal/features/auth/middleware"
 	auth_repository "github.com/Kosvu/gophermart/internal/features/auth/repository"
 	auth_service "github.com/Kosvu/gophermart/internal/features/auth/service"
 	"github.com/Kosvu/gophermart/internal/features/auth/token"
@@ -45,6 +46,10 @@ func main() {
 
 	r.Post("/api/user/register", transportHTTPAuth.Register)
 	r.Post("/api/user/login", transportHTTPAuth.Login)
+
+	r.Group(func(r chi.Router) {
+		r.Use(auth_middleware.Auth(token))
+	})
 
 	go func() {
 		if err := http.ListenAndServe(cfg.Addr, r); err != nil {

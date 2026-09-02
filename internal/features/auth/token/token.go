@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	apperrors "github.com/Kosvu/gophermart/internal/core/errors"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -24,6 +25,26 @@ func NewToken(secret string, ttl time.Duration) *Token {
 type Claims struct {
 	Login string
 	jwt.RegisteredClaims
+}
+
+func (t *Token) Validate(tokenString string) (string, error) {
+	claims := &Claims{}
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		claims,
+		func(tn *jwt.Token) (any, error) { return []byte(t.secret), nil },
+		jwt.WithValidMethods([]string{"HS256"}),
+	)
+
+	if err != nil {
+		return "", apperrors.ErrInvalidToken
+	}
+
+	if !token.Valid {
+		return "", apperrors.ErrInvalidToken
+	}
+
+	return claims.Login, nil
 }
 
 func (t *Token) Issue(login string) (string, error) {
