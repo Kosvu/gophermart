@@ -1,28 +1,14 @@
 package auth_middleware
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
+	core_ctxvalue "github.com/Kosvu/gophermart/internal/core/ctxvalue"
 	"github.com/Kosvu/gophermart/internal/features/auth/token"
 )
 
 type Middleware func(http.Handler) http.Handler
-
-type ctxKey struct{}
-
-func LoginFromContext(ctx context.Context) (string, bool) {
-	login := ctx.Value(ctxKey{})
-
-	loginString, ok := login.(string)
-
-	if !ok {
-		return "", false
-	}
-
-	return loginString, true
-}
 
 func Auth(t *token.Token) Middleware {
 	return func(next http.Handler) http.Handler {
@@ -42,8 +28,7 @@ func Auth(t *token.Token) Middleware {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), ctxKey{}, login)
-
+			ctx := core_ctxvalue.WithLogin(r.Context(), login)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

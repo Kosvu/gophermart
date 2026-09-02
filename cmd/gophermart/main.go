@@ -11,7 +11,7 @@ import (
 	"github.com/Kosvu/gophermart/internal/core/config"
 	"github.com/Kosvu/gophermart/internal/core/migrations"
 	core_repository "github.com/Kosvu/gophermart/internal/core/repository"
-	auth_middleware "github.com/Kosvu/gophermart/internal/features/auth/middleware"
+	auth_middleware "github.com/Kosvu/gophermart/internal/features/auth/middleware_auth"
 	auth_repository "github.com/Kosvu/gophermart/internal/features/auth/repository"
 	auth_service "github.com/Kosvu/gophermart/internal/features/auth/service"
 	"github.com/Kosvu/gophermart/internal/features/auth/token"
@@ -51,6 +51,7 @@ func main() {
 		r.Use(auth_middleware.Auth(token))
 	})
 
+	log.Printf("server started on %s", cfg.Addr)
 	go func() {
 		if err := http.ListenAndServe(cfg.Addr, r); err != nil {
 			panic(err)
