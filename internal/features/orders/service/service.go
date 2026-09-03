@@ -10,7 +10,7 @@ type ordersRepository interface {
 	Load(ctx context.Context, login, number string) error
 }
 
-func NewOrdersRepository(ordersRepository ordersRepository) *OrdersService {
+func NewOrdersService(ordersRepository ordersRepository) *OrdersService {
 	return &OrdersService{
 		ordersRepository: ordersRepository,
 	}

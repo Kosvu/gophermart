@@ -16,6 +16,9 @@ import (
 	auth_service "github.com/Kosvu/gophermart/internal/features/auth/service"
 	"github.com/Kosvu/gophermart/internal/features/auth/token"
 	auth_transport_http "github.com/Kosvu/gophermart/internal/features/auth/transport/http"
+	orders_repository "github.com/Kosvu/gophermart/internal/features/orders/repository"
+	orders_service "github.com/Kosvu/gophermart/internal/features/orders/service"
+	orders_transport "github.com/Kosvu/gophermart/internal/features/orders/transport"
 	"github.com/go-chi/chi"
 )
 
@@ -42,6 +45,10 @@ func main() {
 	serviceAuth := auth_service.NewAuthService(repositoryAuth, *token)
 	transportHTTPAuth := auth_transport_http.NewAuthHTTPHandler(serviceAuth)
 
+	repositoryOrders := orders_repository.NewOrdersRepository(pool)
+	serviceOrders := orders_service.NewOrdersService(repositoryOrders)
+	transportOrders := orders_transport.NewOrdersHTTPHandler(serviceOrders)
+
 	r := chi.NewRouter()
 
 	r.Post("/api/user/register", transportHTTPAuth.Register)
@@ -49,6 +56,7 @@ func main() {
 
 	r.Group(func(r chi.Router) {
 		r.Use(auth_middleware.Auth(token))
+		r.Post("/api/user/orders", transportOrders.Load)
 	})
 
 	log.Printf("server started on %s", cfg.Addr)
