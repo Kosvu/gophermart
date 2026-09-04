@@ -57,6 +57,7 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(auth_middleware.Auth(token))
 		r.Post("/api/user/orders", transportOrders.Load)
+		r.Get("/api/user/orders", transportOrders.GetOrders)
 	})
 
 	log.Printf("server started on %s", cfg.Addr)
