@@ -12,3 +12,8 @@ var ErrInvalidToken = errors.New("invalid token")
 var ErrInvalidNumber = errors.New("invalid number")
 var ErrOrderAlreadyLoaded = errors.New("order already loaded")
 var ErrOrderTakenByAnother = errors.New("order taken by another")
+
+// accrual
+var ErrNoContent = errors.New("no content")
+var ErrTooManyRequest = errors.New("too many request")
+var ErrInternalServer = errors.New("internal server")
