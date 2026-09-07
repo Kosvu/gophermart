@@ -3,9 +3,11 @@ package balance_repository
 import (
 	"context"
 	"fmt"
+
+	core_domain "github.com/Kosvu/gophermart/internal/core/domain"
 )
 
-func (r *BalanceRepository) GetBalance(ctx context.Context, login string) (BalanceModel, error) {
+func (r *BalanceRepository) GetBalance(ctx context.Context, login string) (core_domain.Balance, error) {
 	queryBalance := `
 	SELECT balance
 	FROM users
@@ -15,7 +17,7 @@ func (r *BalanceRepository) GetBalance(ctx context.Context, login string) (Balan
 	var balance float64
 
 	if err := r.pool.QueryRowContext(ctx, queryBalance, login).Scan(&balance); err != nil {
-		return BalanceModel{}, fmt.Errorf("select balance: %w", err)
+		return core_domain.Balance{}, fmt.Errorf("select balance: %w", err)
 	}
 
 	queryWithdrawn := `
@@ -26,8 +28,15 @@ func (r *BalanceRepository) GetBalance(ctx context.Context, login string) (Balan
 
 	var withdrawn float64
 	if err := r.pool.QueryRowContext(ctx, queryWithdrawn, login).Scan(&withdrawn); err != nil {
-		return BalanceModel{}, fmt.Errorf("select withdrawn: %w", err)
+		return core_domain.Balance{}, fmt.Errorf("select withdrawn: %w", err)
 	}
 
-	return BalanceModel{Current: balance, Withdrawn: withdrawn}, nil
+	balanceModel := BalanceModel{
+		Current:   balance,
+		Withdrawn: withdrawn,
+	}
+
+	balanceDomain := BalanceDomainFromModel(balanceModel)
+
+	return balanceDomain, nil
 }
