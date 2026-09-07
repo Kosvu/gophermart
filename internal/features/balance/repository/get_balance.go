@@ -14,9 +14,9 @@ func (r *BalanceRepository) GetBalance(ctx context.Context, login string) (core_
 	WHERE login=$1
 	`
 
-	var balance float64
+	var balance BalanceModel
 
-	if err := r.pool.QueryRowContext(ctx, queryBalance, login).Scan(&balance); err != nil {
+	if err := r.pool.QueryRowContext(ctx, queryBalance, login).Scan(&balance.Current); err != nil {
 		return core_domain.Balance{}, fmt.Errorf("select balance: %w", err)
 	}
 
@@ -26,17 +26,11 @@ func (r *BalanceRepository) GetBalance(ctx context.Context, login string) (core_
 	WHERE user_login=$1
 	`
 
-	var withdrawn float64
-	if err := r.pool.QueryRowContext(ctx, queryWithdrawn, login).Scan(&withdrawn); err != nil {
+	if err := r.pool.QueryRowContext(ctx, queryWithdrawn, login).Scan(&balance.Withdrawn); err != nil {
 		return core_domain.Balance{}, fmt.Errorf("select withdrawn: %w", err)
 	}
 
-	balanceModel := BalanceModel{
-		Current:   balance,
-		Withdrawn: withdrawn,
-	}
-
-	balanceDomain := BalanceDomainFromModel(balanceModel)
+	balanceDomain := balanceDomainFromModel(balance)
 
 	return balanceDomain, nil
 }

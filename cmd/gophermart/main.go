@@ -20,6 +20,9 @@ import (
 	auth_service "github.com/Kosvu/gophermart/internal/features/auth/service"
 	"github.com/Kosvu/gophermart/internal/features/auth/token"
 	auth_transport_http "github.com/Kosvu/gophermart/internal/features/auth/transport/http"
+	balance_repository "github.com/Kosvu/gophermart/internal/features/balance/repository"
+	balance_service "github.com/Kosvu/gophermart/internal/features/balance/service"
+	balance_transport "github.com/Kosvu/gophermart/internal/features/balance/transport"
 	orders_repository "github.com/Kosvu/gophermart/internal/features/orders/repository"
 	orders_service "github.com/Kosvu/gophermart/internal/features/orders/service"
 	orders_transport "github.com/Kosvu/gophermart/internal/features/orders/transport"
@@ -52,11 +55,15 @@ func main() {
 
 	repositoryOrders := orders_repository.NewOrdersRepository(pool)
 	serviceOrders := orders_service.NewOrdersService(repositoryOrders)
-	transportOrders := orders_transport.NewOrdersHTTPHandler(serviceOrders)
+	transportHTTPOrders := orders_transport.NewOrdersHTTPHandler(serviceOrders)
 
 	repositoryAccrual := accrual_repository.NewAccrualRepository(pool)
 	clientAccrual := core_accrual.NewClient(cfg.AccrualAddress)
 	workerAccrual := accrual_worker.NewWorker(clientAccrual, repositoryAccrual, accrual_worker.DefaultInterval)
+
+	repositoryBalance := balance_repository.NewBalanceRepository(pool)
+	serviceBalance := balance_service.NewBalanseService(repositoryBalance)
+	transportHTTPBalance := balance_transport.NewBalanceHTTPHandler(serviceBalance)
 
 	go workerAccrual.Run(ctx)
 
@@ -67,8 +74,9 @@ func main() {
 
 	r.Group(func(r chi.Router) {
 		r.Use(auth_middleware.Auth(token))
-		r.Post("/api/user/orders", transportOrders.Load)
-		r.Get("/api/user/orders", transportOrders.GetOrders)
+		r.Post("/api/user/orders", transportHTTPOrders.Load)
+		r.Get("/api/user/orders", transportHTTPOrders.GetOrders)
+		r.Get("/api/user/balance", transportHTTPBalance.GetBalance)
 	})
 
 	log.Printf("server started on %s", cfg.Addr)

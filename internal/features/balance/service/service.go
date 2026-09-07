@@ -7,9 +7,15 @@ import (
 )
 
 type BalanceService struct {
-	balanceRepository balanceRepository
+	balanceRepository BalanceRepository
 }
 
-type balanceRepository interface {
+type BalanceRepository interface {
 	GetBalance(ctx context.Context, login string) (core_domain.Balance, error)
+}
+
+func NewBalanseService(balanseRepository BalanceRepository) *BalanceService {
+	return &BalanceService{
+		balanceRepository: balanseRepository,
+	}
 }

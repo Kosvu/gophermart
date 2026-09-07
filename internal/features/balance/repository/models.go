@@ -7,7 +7,7 @@ type BalanceModel struct {
 	Withdrawn float64
 }
 
-func BalanceDomainFromModel(balance BalanceModel) core_domain.Balance {
+func balanceDomainFromModel(balance BalanceModel) core_domain.Balance {
 	return core_domain.Balance{
 		Current:   balance.Current,
 		Withdrawn: balance.Withdrawn,
